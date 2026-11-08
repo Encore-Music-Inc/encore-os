@@ -8,7 +8,7 @@ look from the first power-on.
 Copyright (C) 2026 Encore Music, Inc. Licensed under the GNU Affero General
 Public License v3 (see `LICENSE`). The ENCORE. name and logo are not licensed
 (see `TRADEMARKS.md`). Third-party code: `THIRD-PARTY-NOTICES.md`. Outside
-contributions are not accepted yet (see `CONTRIBUTING.md`).
+contributions are not accepted (see `CONTRIBUTING.md`).
 Contact: support@encoremusic.studio
 
 ## What's on it
@@ -19,8 +19,8 @@ Contact: support@encoremusic.studio
 - **ENCORE.**: a tile that opens encoremusic.studio in its own window (your
   account, your music, your fans). It needs the internet; nothing of the
   website is installed.
-- **Audio set up for music**: PipeWire at 256 samples, 48 kHz (about 5 ms),
-  real-time priority for the `audio` group, JACK apps through PipeWire, and the
+- **Audio set up for music**: PipeWire set for low latency
+  (`image/stage-encore/01-audio/files/90-encore-low-latency.conf`), real-time priority for the `audio` group, JACK apps through PipeWire, and the
   CPU kept at full speed so audio doesn't drop out.
 - **ENCORE. Home** (big tiles for your apps, on every login), a first-login
   **Welcome** (a short video, then picking your audio interface), and the dark
@@ -41,7 +41,7 @@ Contact: support@encoremusic.studio
 | Pi Zero 2 W | Not supported: too little memory (512 MB) |
 | Pi 1, Pi 2, Pi Zero, Zero W | Not supported: 32-bit only |
 
-Use a 16 GB or bigger SD card (32 GB is comfortable). To record you need a USB
+Use a 16 GB or bigger SD card. To record you need a USB
 audio interface or USB microphone: no Pi has a microphone input.
 
 ## Put it on an SD card
@@ -139,29 +139,6 @@ To move a pin: change its line in `pins.conf`, update the table
 (`.github/pins/check.sh --table` prints it), and open a pull request titled
 "Use <repository> vX.Y.Z (was vA.B.C)".
 
-## How ENCORE.'s repositories fit together
-
-```
-encore-audio-processing ──▶ JUCE                        (the JUCE version for all of ENCORE.)
-encore-vst              ──▶ encore-audio-processing     (brings JUCE with it)
-encore-basement-studio  ──▶ encore-vst                  (brings the sound engine and JUCE with it)
-                        ──▶ Tracktion Engine
-encore-os               ──▶ encore-vst and encore-basement-studio releases, pi-gen
-                            (opens encoremusic.studio; pins nothing from it)
-Green Room (encoremusic)──▶ master.wasm from encore-audio-processing, by its SHA-256
-```
-
-- Each repository pins each thing it uses in one place, and only to a
-  published release. Nothing is pinned twice.
-- Changes travel up one repository at a time, each through a release:
-  encore-audio-processing, then encore-vst, then encore-basement-studio, then
-  encore-os. A repository moves to a new release only when something changes
-  for its own users, and picks its own version number by what its users
-  notice.
-- Pull request titles: "Use <repository> vX.Y.Z (was vA.B.C)" in the
-  repository that moves a pin; "Release vX.Y.Z" only for the repository's own
-  version.
-
 ## Build
 
 **The package** (on Debian or Ubuntu): install `ffmpeg python3-pil
@@ -171,7 +148,7 @@ OS with the desktop): `sudo apt install ./encore-os_*.deb`, then log out and
 back in (reboot to see the boot animation).
 
 **The image** is built by CI (below): pi-gen needs a privileged container on
-an arm64 machine and about an hour.
+an arm64 machine.
 
 ## CI
 
@@ -186,7 +163,7 @@ an arm64 machine and about an hour.
   `.github/CODEOWNERS` skips the builds (skipped counts as passing).
 - "CI passed" is the one check to require.
 - Every action is pinned to a commit, with its version in a comment.
-  Dependabot proposes updates once a month (`.github/dependabot.yml`).
+  Dependabot proposes updates (`.github/dependabot.yml`).
 
 ## Releases
 
@@ -200,5 +177,5 @@ a new release, choose a new tag `vX.Y.Z` on `main`, leave the title and
 description empty, Publish. The tag starts CI, which doesn't rebuild: it takes
 the image from the successful `main` build of that exact commit, attaches it
 with its `.sha256` and the Imager list, and sets the title and notes from
-`CHANGELOG.md`. Workflow artifacts are kept for 90 days, so release a commit
-within that time.
+`CHANGELOG.md`. Workflow artifacts expire, so release a commit while its
+build's files are still there.

@@ -17,6 +17,13 @@ from ENCORE.'s other and older repositories do not apply here; this file does.
 - Don't write "DSP" in names, titles or prose for people. Say "audio processing".
 - Anything third-party goes in `THIRD-PARTY-NOTICES.md`, and the image's own
   notice is `package/usr/share/doc/encore-os/SOURCE-CODE.txt`.
+- Docs (README, CLAUDE.md) describe this repository and what it directly uses
+  or is used by, never a map of ENCORE.'s other repositories.
+- Docs say what the repository does and point to the file that sets a value
+  (`ci.yml`, `dependabot.yml`, `defaults.conf`, `pins.conf`). They never
+  repeat a value from config or code, and never give an estimate or a
+  measurement (how long, how fast, how often). Release notes are the
+  exception: each describes its release on the day it was published.
 - Built on Raspberry Pi OS Trixie (64-bit), with pi-gen, Raspberry Pi's own
   image builder. Never fork the OS: Raspberry Pi and Debian keep doing the
   kernel, drivers and security updates.
@@ -26,8 +33,8 @@ from ENCORE.'s other and older repositories do not apply here; this file does.
 - What it's built from is named once, in `pins.conf`: the ENCORE. VST and
   ENCORE. Basement Studio release files by SHA-256, and pi-gen by Raspberry Pi
   OS's tag and its commit. Release files only, never a build artifact.
-- Upkeep (security updates, rebuilding on newer Raspberry Pi OS every few
-  months) belongs to Jimmy after the handover.
+- Upkeep (security updates, rebuilding on newer Raspberry Pi OS releases)
+  belongs to Jimmy.
 
 ## Layout
 
@@ -46,29 +53,19 @@ from ENCORE.'s other and older repositories do not apply here; this file does.
 | `.github/release-notes.sh` | prints a version's notes from `CHANGELOG.md`, and fails if they're missing (CI runs it on every build) |
 | `.github/workflows/ci.yml` | pull requests, main and manual runs: pins check, the package, the image (pi-gen on arm64, `check-image.sh` with Basement Studio's self-test inside the image, screenshots, Imager list) as artifacts; `v*` tags: attach main's image to the Release, no rebuild; "CI passed" is the one check to require |
 
-## How ENCORE.'s repositories fit together
+## Pins
 
-```
-encore-audio-processing ──▶ JUCE                        (the JUCE version for all of ENCORE.)
-encore-vst              ──▶ encore-audio-processing     (brings JUCE with it)
-encore-basement-studio  ──▶ encore-vst                  (brings the sound engine and JUCE with it)
-                        ──▶ Tracktion Engine
-encore-os               ──▶ encore-vst and encore-basement-studio releases, pi-gen
-                            (opens encoremusic.studio; pins nothing from it)
-Green Room (encoremusic)──▶ master.wasm from encore-audio-processing, by its SHA-256
-```
-
-- Each repository pins each thing it uses in one place, and only to a
-  published release. Here that place is `pins.conf`, and the README's Pinned
-  releases table must match it (CI checks).
+- What this repository uses is named once, in `pins.conf`, and only as a
+  published release. The README's Pinned releases table must match it (CI
+  checks).
 - Nothing is pinned twice: the plugins in Basement Studio come from its .deb;
   the ENCORE. VST files are the same plugins for other music apps.
-- Changes travel up one repository at a time, each through a release:
-  encore-audio-processing, then encore-vst, then encore-basement-studio, then
-  encore-os. A repository moves to a new release only when something changes
-  for its own users, and picks its own version number by what its users notice.
-- Pull request titles: "Use <repository> vX.Y.Z (was vA.B.C)" in the repository
-  that moves a pin; "Release vX.Y.Z" only for the repository's own version.
+- Move a pin to a new release only when something changes for this
+  repository's users, and pick this repository's version number by what its
+  users notice, not by the number of what it uses.
+- Pull request titles: "Use <repository> vX.Y.Z (was vA.B.C)" for a pull
+  request that moves a pin; "Release vX.Y.Z" only for this repository's own
+  version.
 
 ## Building and testing
 
@@ -77,8 +74,8 @@ Green Room (encoremusic)──▶ master.wasm from encore-audio-processing, by i
 - Package: `./build-deb.sh <out dir>` with the system Python (it needs Pillow,
   numpy and fontTools) plus ffmpeg and rsvg-convert. Look at what the art
   scripts draw (boot frames, wallpapers, video frames) after changing them.
-- Image: CI only (pi-gen in a privileged `debian:trixie` container on
-  `ubuntu-24.04-arm`, about an hour). `image/check-image.sh` must pass; it
+- Image: CI only (pi-gen in a privileged container on an arm64 runner, as
+  `ci.yml` sets up). `image/check-image.sh` must pass; it
   runs Basement Studio's self-test inside the image.
 - Trixie package names differ from Bookworm's (the desktop is `rpd-*`
   metapackages from pi-gen's stage3; raspi-config's labwc option is `W2`).
@@ -119,8 +116,8 @@ Green Room (encoremusic)──▶ master.wasm from encore-audio-processing, by i
   release is due, open the version pull request, then tell your human the version
   number, why that number, and what changed since the last release, and wait for
   them to publish it.
-- Tags `v*` should be protected (a tag ruleset, as on encore-vst): they can't be
-  moved or deleted (an org admin can, in an emergency).
+- Tags `v*` are protected: they can't be moved or deleted (an org admin can, in an
+  emergency).
 
 ## Release notes
 
