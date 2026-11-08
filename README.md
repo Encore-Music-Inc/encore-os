@@ -202,6 +202,3 @@ the image from the successful `main` build of that exact commit, attaches it
 with its `.sha256` and the Imager list, and sets the title and notes from
 `CHANGELOG.md`. Workflow artifacts are kept for 90 days, so release a commit
 within that time.
-
-Before a version's first release, someone flashes that `main` build's image
-onto a real Pi and checks it starts, logs in and plays audio.

@@ -26,8 +26,6 @@ from ENCORE.'s other and older repositories do not apply here; this file does.
 - What it's built from is named once, in `pins.conf`: the ENCORE. VST and
   ENCORE. Basement Studio release files by SHA-256, and pi-gen by Raspberry Pi
   OS's tag and its commit. Release files only, never a build artifact.
-- An image is published as a release only after a person has flashed that
-  `main` build onto a real Pi and checked it starts, logs in and plays audio.
 - Upkeep (security updates, rebuilding on newer Raspberry Pi OS every few
   months) belongs to Jimmy after the handover.
 
@@ -102,15 +100,13 @@ Green Room (encoremusic)──▶ master.wasm from encore-audio-processing, by i
    Release notes below); CI fails until they're there.
 3. Merging builds everything on `main`: the package, the image, its check and
    screenshots, and the Imager list, as workflow artifacts.
-4. A person flashes that `main` build's image onto a real Pi (`make-local-list.py`
-   in the `encore-os` artifact) and checks it starts, logs in and plays audio.
-5. Then a person publishes the release in GitHub. Never a Claude session. Releases,
-   Draft a new release; tag `vX.Y.Z` (Create new tag) with target `main` at the
-   "Release vX.Y.Z" commit; leave the title and the description empty, don't click
-   Generate release notes and don't attach files (the release job fills all of them
-   in); Publish. Never publish an old draft release: publishing creates its tag on
-   whatever its target is at that moment.
-6. The tag's CI run doesn't rebuild. It checks that the tag matches the version, finds
+4. After the `main` build of that commit has passed, a person publishes the release in
+   GitHub. Never a Claude session. Releases, Draft a new release; tag `vX.Y.Z` (Create
+   new tag) with target `main` at the "Release vX.Y.Z" commit; leave the title and the
+   description empty, don't click Generate release notes and don't attach files (the
+   release job fills all of them in); Publish. Never publish an old draft release:
+   publishing creates its tag on whatever its target is at that moment.
+5. The tag's CI run doesn't rebuild. It checks that the tag matches the version, finds
    the successful `main` build of that exact commit and attaches its image with its
    `.sha256`, `os_list_encore.json` and `make-local-list.py`, and sets its title
    (`ENCORE. OS vX.Y.Z`) and notes (the version's section of `CHANGELOG.md`). If either
