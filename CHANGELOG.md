@@ -7,7 +7,8 @@ job puts its section on the GitHub release (see "Release notes" in
 ## v1.0.0
 
 The first release of ENCORE. OS: a ready-to-flash music studio for Raspberry
-Pi 4, 5, 400 and 500, built on 64-bit Raspberry Pi OS (Trixie).
+Pi 4, 400, 5, 500 and 500+ with 2 GB or more, built on 64-bit Raspberry Pi OS
+(Trixie).
 
 ### What's in it
 - **ENCORE. Basement Studio**, with the ENCORE. plugins built in.
