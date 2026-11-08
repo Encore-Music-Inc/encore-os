@@ -11,7 +11,7 @@ install -d "${ROOTFS_DIR}/tmp/encore"
 cp -v "${debs[@]}" "${ROOTFS_DIR}/tmp/encore/"
 on_chroot << EOF2
 set -e
-apt-get -o Acquire::Retries=3 install -y /tmp/encore/*.deb
+apt-get -o Acquire::Retries=3 install -y --no-remove /tmp/encore/*.deb
 dpkg-query -W -f='[encore] installed \${Package} \${Version}\n' encore-basement-studio
 EOF2
 rm -rf "${ROOTFS_DIR}/tmp/encore"

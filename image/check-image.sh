@@ -84,7 +84,7 @@ f /etc/pipewire/jack.conf.d/90-encore-jack.conf
 f /etc/systemd/system/user@.service.d/encore-audio.conf
 [ -L "$m/etc/systemd/system/multi-user.target.wants/encore-performance.service" ] && ok "performance mode enabled" || bad "encore-performance.service not enabled"
 ls "$m"/etc/ld.so.conf.d/pipewire-jack-*.conf >/dev/null 2>&1 && ok "JACK through PipeWire" || bad "pipewire-jack ld.so.conf missing"
-for p in pipewire wireplumber pipewire-jack rtkit pavucontrol rpd-wayland-core piwiz labwc; do
+for p in pipewire wireplumber pipewire-jack rtkit pavucontrol rpd-common rpd-wayland-core labwc lightdm pi-greeter pcmanfm-pi piwiz; do
 	chroot "$m" dpkg-query -W -f='${Status}' "$p" 2>/dev/null | grep -q "install ok installed" && ok "package $p" || bad "package $p not installed"
 done
 

@@ -13,11 +13,13 @@ echo "[encore] apps: $apps"
 
 install -d "${ROOTFS_DIR}/tmp/encore-os"
 cp -v "${debs[@]}" "${ROOTFS_DIR}/tmp/encore-os/"
+# --no-remove: an app that clashes with the desktop fails the build here, instead of apt
+# quietly removing the desktop to make room (pcmanfm did that: Trixie has pcmanfm-pi).
 on_chroot << EOF2
 set -e
 export DEBIAN_FRONTEND=noninteractive ENCORE_OS_BUILDING=1
-apt-get -o Acquire::Retries=3 install -y $apps
-apt-get -o Acquire::Retries=3 install -y /tmp/encore-os/*.deb
+apt-get -o Acquire::Retries=3 install -y --no-remove $apps
+apt-get -o Acquire::Retries=3 install -y --no-remove /tmp/encore-os/*.deb
 if [ -n "$remove" ]; then apt-get purge -y $remove; apt-get autoremove -y; fi
 dpkg-query -W -f='[encore] installed \${Package} \${Version}\n' encore-os
 echo "[encore] boot animation: \$(plymouth-set-default-theme)"
