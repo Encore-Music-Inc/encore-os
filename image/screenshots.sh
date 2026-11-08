@@ -71,6 +71,12 @@ stop() { pkill -f "labwc" 2>/dev/null; sleep 2; pkill -9 -f "labwc" 2>/dev/null;
 shot() {
 	if WAYLAND_DISPLAY="$m/run/user/1000/wayland-0" timeout 20 grim "$out/$1.png" 2>>"$out/grim.log"; then
 		echo "shot $1.png"
+		# the panel should be running under every shot; if it isn't, say so (and whether it crashed)
+		if pgrep -u 1000 -x wf-panel-pi >/dev/null; then echo "panel running at $1" >> "$out/panel.log"
+		else
+			echo "::warning title=screenshot::the panel isn't running at $1 (panel.log)"
+			{ echo "panel NOT running at $1"; dmesg 2>/dev/null | grep -i "wf-panel" | tail -n 5; } >> "$out/panel.log"
+		fi
 	else
 		echo "::warning title=screenshot::$1 didn't come out"
 	fi
