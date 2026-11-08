@@ -1,0 +1,14 @@
+# ENCORE. for Raspberry Pi: run the CPU at full speed, so audio doesn't
+# drop out while the CPU speeds up. Turn it off with:
+#   sudo systemctl disable --now encore-performance
+[Unit]
+Description=ENCORE. full CPU speed for steady audio
+After=raspi-config.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh -c 'for g in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do [ -w "$g" ] && echo performance > "$g"; done; true'
+
+[Install]
+WantedBy=multi-user.target

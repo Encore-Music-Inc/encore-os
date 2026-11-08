@@ -1,0 +1,32 @@
+ENCORE. OS: the software inside, and where its source code is
+
+ENCORE. OS is Raspberry Pi OS (64-bit, Debian 13 "Trixie") with the ENCORE. layer on top.
+
+The ENCORE. layer is free software from Encore Music, Inc. under the GNU AGPLv3. Each
+part's source code is public, at the release this image was built from:
+
+- ENCORE. OS itself (Home, Welcome, the look, boot animation, login screen, artwork, the
+  image build): https://github.com/Encore-Music-Inc/encore-os
+- ENCORE. Basement Studio: https://github.com/Encore-Music-Inc/encore-basement-studio
+- ENCORE. VST (the plugins in /usr/lib/vst3 and /usr/lib/lv2):
+  https://github.com/Encore-Music-Inc/encore-vst
+- ENCORE. Audio Processing (inside both): https://github.com/Encore-Music-Inc/encore-audio-processing
+
+/etc/encore-os/release names the ENCORE. OS version; its release notes on GitHub name the
+exact releases of the others.
+
+The ENCORE. tile opens the encoremusic.studio website; nothing of it is installed here.
+
+Everything else in the system (the Linux kernel, the desktop, VLC, Hydrogen, Chromium,
+LibreOffice and the rest) is free and open-source software from Raspberry Pi and Debian,
+unmodified, each under its own license. Each package's license is in
+/usr/share/doc/<package>/copyright.
+
+Source code for those packages:
+
+- From the same archives this system installs from: run `apt source <package>` (after
+  enabling the deb-src lines in /etc/apt/sources.list.d/), or browse
+  https://archive.raspberrypi.com/debian/ and https://deb.debian.org/debian/.
+- Or ask Encore Music, Inc. (support@encoremusic.studio) for a copy of the source code of
+  any GPL-licensed package in this image, for three years from the date this image was
+  released.

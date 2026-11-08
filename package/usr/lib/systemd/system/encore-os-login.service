@@ -1,0 +1,10 @@
+[Unit]
+Description=ENCORE. OS login setting (password or automatic)
+Before=lightdm.service display-manager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/encore-os/apply-login
+
+[Install]
+WantedBy=multi-user.target

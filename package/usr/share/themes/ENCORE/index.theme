@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=X-GNOME-Metatheme
+Name=ENCORE.
+Comment=ENCORE. OS: Raspberry Pi's dark theme in ENCORE. colours
+
+[X-GNOME-Metatheme]
+GtkTheme=ENCORE
+IconTheme=ENCORE
+CursorTheme=PiXflat

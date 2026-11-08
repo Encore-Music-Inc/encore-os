@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=ENCORE. OS
+Comment=Opens the Welcome the first time, then ENCORE. Home
+Exec=encore-session
+NoDisplay=true
+X-GNOME-Autostart-Phase=Applications

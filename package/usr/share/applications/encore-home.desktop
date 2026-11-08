@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=ENCORE. Home
+GenericName=Home
+Comment=Your apps, big and simple
+Exec=encore-home
+Icon=encore-os
+Categories=Utility;
+Keywords=home;launcher;start;apps;
+StartupNotify=true

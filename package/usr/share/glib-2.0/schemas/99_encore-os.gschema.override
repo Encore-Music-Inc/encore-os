@@ -1,0 +1,9 @@
+# ENCORE. OS: dark, DM Sans (Raspberry Pi's dark theme, recoloured in ENCORE. orange by
+# ~/.local/share/themes/PiXnoir/gtk-3.0/gtk.css, the same file Appearance Settings writes)
+[org.gnome.desktop.interface]
+gtk-theme='PiXnoir'
+icon-theme='ENCORE'
+cursor-theme='PiXflat'
+font-name='DM Sans 11'
+monospace-font-name='Space Mono 10'
+color-scheme='prefer-dark'

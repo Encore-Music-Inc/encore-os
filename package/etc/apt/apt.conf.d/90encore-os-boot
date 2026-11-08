@@ -1,0 +1,2 @@
+// ENCORE. OS: put the ENCORE. boot animation back if an update replaced it
+DPkg::Post-Invoke { "if [ -x /usr/lib/encore-os/keep-boot-theme ]; then /usr/lib/encore-os/keep-boot-theme || true; fi"; };

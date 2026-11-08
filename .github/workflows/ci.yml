@@ -1,0 +1,375 @@
+# ENCORE. OS: the encore-os package and the SD card image built from it.
+#
+#   pull request, push to main, manual run
+#                         the encore-os package (drawn and built fresh), then the image:
+#                         64-bit Raspberry Pi OS Trixie built with pi-gen (Raspberry Pi's
+#                         own image builder) natively on an arm64 runner, plus the ENCORE.
+#                         stage (image/stage-encore) with the releases pins.conf names. The
+#                         image is checked without booting it (image/check-image.sh, which
+#                         also runs ENCORE. Basement Studio's self-test inside it),
+#                         photographed on a virtual screen (image/screenshots.sh),
+#                         compressed and listed for Raspberry Pi Imager. Kept as artifacts.
+#   v* tag                no build: the files from the successful main build of the tag's
+#                         commit are attached to the Release, with its title and notes
+#
+# A pull request or push that only changes *.md, LICENSE or .github/CODEOWNERS skips the
+# builds. Every action is pinned to a commit (the version is in the comment next to it);
+# Dependabot proposes updates (.github/dependabot.yml). "CI passed" is the one check to
+# require.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# a new push to a pull request cancels its older run; main and tags are never cancelled,
+# so every main commit keeps its build and can be released
+concurrency:
+  group: ci-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  changes:
+    name: What changed
+    runs-on: ubuntu-24.04
+    outputs:
+      code: ${{ steps.diff.outputs.code }}
+      kind: ${{ steps.diff.outputs.kind }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: diff
+        env:
+          EVENT: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          # kind: pr or build (the package and the image), release (no build)
+          if [[ "$REF" == refs/tags/v* ]]; then kind=release
+          elif [[ "$EVENT" == pull_request ]]; then kind=pr
+          else kind=build; fi
+          echo "kind=$kind" >> "$GITHUB_OUTPUT"
+          if [[ "$EVENT" == pull_request ]]; then
+            files=$(git diff --name-only "$PR_BASE" "$PR_HEAD")
+          elif [[ "$EVENT" == push && "$REF" == refs/heads/* && -n "$PUSH_BEFORE" && "$PUSH_BEFORE" != 0000000000000000000000000000000000000000 ]]; then
+            files=$(git diff --name-only "$PUSH_BEFORE" "$SHA")
+          else
+            echo "code=true" >> "$GITHUB_OUTPUT"; echo "Tag or manual run: everything it needs runs"; exit 0
+          fi
+          echo "Changed files:"; echo "$files"
+          code=$(echo "$files" | grep -Ev '(\.md$|^LICENSE$|^\.github/CODEOWNERS$)' | grep -c . || true)
+          if [[ "$code" -gt 0 ]]; then echo "code=true" >> "$GITHUB_OUTPUT"; else echo "code=false" >> "$GITHUB_OUTPUT"; echo "Docs only: the builds are skipped"; fi
+      - id: version
+        name: Version (from defaults.conf; a tag must match it)
+        env:
+          REF: ${{ github.ref }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          version=$(sed -nE 's/^version *= *([0-9]+\.[0-9]+\.[0-9]+) *$/\1/p' defaults.conf | head -n 1)
+          [[ -n "$version" ]] || { echo "::error::No [os] version = x.y.z in defaults.conf"; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Version: $version"
+          if [[ "$REF" == refs/tags/v* && "v$version" != "$REF_NAME" ]]; then
+            echo "::error::Tag $REF_NAME does not match the version in defaults.conf ($version). Change [os] version on main first."
+            exit 1
+          fi
+      # Every version has its release notes in CHANGELOG.md, so the "Release vX.Y.Z" pull
+      # request can't merge without them. The release job puts them on the GitHub release.
+      - name: Release notes for this version (CHANGELOG.md)
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: .github/release-notes.sh "$VERSION"
+
+  # Every pin is a published release, and the SHA-256 in pins.conf is the one it published
+  pins:
+    name: Pinned releases
+    needs: changes
+    if: needs.changes.outputs.kind != 'release'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check the pins
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/pins/check.sh
+
+  package:
+    name: encore-os package
+    needs: changes
+    if: needs.changes.outputs.code == 'true' && needs.changes.outputs.kind != 'release'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install the art tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends ffmpeg python3-pil python3-numpy python3-fonttools librsvg2-bin >/dev/null
+      # the scripts and Python that run on the Pi, checked before anything is built
+      - name: Check the scripts
+        run: |
+          set -euo pipefail
+          for f in build-deb.sh package/DEBIAN/postinst package/usr/bin/* package/usr/lib/encore-os/apply-login \
+                   package/usr/lib/encore-os/apply-look package/usr/lib/encore-os/keep-boot-theme \
+                   image/*.sh image/stage-encore/*.sh image/stage-encore/*/*.sh .github/*.sh .github/pins/*.sh; do
+            head -n 1 "$f" | grep -q python || { bash -n "$f" && echo "ok   $f"; }
+          done
+          /usr/bin/python3 -m py_compile package/usr/lib/encore-os/*.py art/*.py imager/*.py image/*.py && echo "ok   Python"
+      # the system Python, which has the art tools installed above
+      - name: Build
+        run: PATH="/usr/bin:$PATH" ./build-deb.sh dist
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: encore-os-package
+          path: dist/encore-os_*.deb
+          if-no-files-found: error
+
+  image:
+    name: ENCORE. OS image
+    needs: [changes, pins, package]
+    if: needs.changes.outputs.code == 'true' && needs.changes.outputs.kind != 'release'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Free disk space
+        run: |
+          echo "before: $(df -h / | tail -n 1)"
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache \
+            /usr/local/share/boost /usr/share/swift /usr/local/julia* /usr/local/share/chromium /opt/microsoft /opt/google || true
+          sudo docker system prune -af >/dev/null 2>&1 || true
+          # the work goes on whichever disk has the most room
+          best=/; for d in /mnt "$RUNNER_TEMP"; do
+            [ -d "$d" ] || continue
+            if [ "$(df --output=avail "$d" | tail -n 1)" -gt "$(df --output=avail "$best" | tail -n 1)" ]; then best=$d; fi
+          done
+          base="$best/encore-os"; [ "$best" = / ] && base="$HOME/encore-os"
+          sudo mkdir -p "$base" && sudo chown "$(id -u):$(id -g)" "$base"
+          echo "BUILD_BASE=$base" >> "$GITHUB_ENV"
+          echo "::notice title=disk space::$(nproc) CPUs, $(free -g | awk '/Mem:/ {print $2}') GB RAM. Building in $base ($(df -h --output=avail "$base" | tail -n 1 | tr -d ' ') free)"
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: encore-os-package
+          path: package-deb
+      # pins.conf: ENCORE. Basement Studio's arm64 .deb, ENCORE. VST's arm64 plugins and
+      # pi-gen, each checked against its SHA-256 or commit before it's used
+      - name: Get what pins.conf names
+        run: |
+          set -euo pipefail
+          deb=$(.github/fetch-pin.sh encore-basement-studio "$RUNNER_TEMP/pins")
+          tgz=$(.github/fetch-pin.sh encore-vst "$RUNNER_TEMP/pins")
+          mkdir -p "$RUNNER_TEMP/vst" && tar -xzf "$tgz" -C "$RUNNER_TEMP/vst"
+          vst=$(find "$RUNNER_TEMP/vst" -mindepth 1 -maxdepth 1 -type d -name 'ENCORE-VST-*' | head -n 1)
+          [ -d "$vst/VST3" ] && [ -d "$vst/LV2" ] || { echo "::error::ENCORE. VST's archive has no VST3 and LV2 folders"; exit 1; }
+          .github/fetch-pin.sh pi-gen "$BUILD_BASE/pi-gen" >/dev/null
+          echo "BASEMENT_DEB=$deb" >> "$GITHUB_ENV"
+          echo "VST_DIR=$vst" >> "$GITHUB_ENV"
+          echo "BASEMENT_VERSION=$(dpkg-deb -f "$deb" Version)" >> "$GITHUB_ENV"
+      - name: Prepare the ENCORE. stage
+        run: |
+          set -euo pipefail
+          pg="$BUILD_BASE/pi-gen"
+          cp -r image/stage-encore "$pg/stage-encore"
+          find "$pg/stage-encore" -name '*.sh' -exec chmod +x {} +
+          cp "$BASEMENT_DEB" "$pg/stage-encore/02-encore/files/"
+          mkdir -p "$pg/stage-encore/02-encore/files/plugins"
+          cp -r "$VST_DIR/VST3" "$VST_DIR/LV2" "$pg/stage-encore/02-encore/files/plugins/"
+          cp package-deb/encore-os_*.deb defaults.conf "$pg/stage-encore/04-encore-os/files/"
+          # stage2 (the base system) makes no image of its own; stage3 (the desktop) is the
+          # base for the ENCORE. stage, without stage4's applications
+          touch "$pg/stage2/SKIP_IMAGES"
+          cp image/config "$pg/config"
+          cat >> "$pg/config" <<EOF
+          STAGE_LIST="stage0 stage1 stage2 stage3 stage-encore"
+          WORK_DIR=/work
+          DEPLOY_DIR=/deploy
+          IMG_DATE=$(date -u +%Y-%m-%d)
+          GIT_HASH=$(git -C "$pg" rev-parse HEAD)
+          EOF
+          sed -i 's/^ *//' "$pg/config"
+          cat "$pg/config"
+          mkdir -p "$BUILD_BASE/work" "$BUILD_BASE/deploy"
+      # pi-gen inside a privileged Debian 13 container (as pi-gen's own build-docker.sh does),
+      # with the work and output folders on the runner's disk
+      - name: Build the image (pi-gen stages 0-3 + ENCORE.)
+        run: |
+          sudo docker run --rm --privileged \
+            -v "$BUILD_BASE/pi-gen:/pi-gen" -v "$BUILD_BASE/work:/work" -v "$BUILD_BASE/deploy:/deploy" \
+            debian:trixie bash -e -o pipefail -c '
+              export DEBIAN_FRONTEND=noninteractive
+              apt-get -qq update
+              apt-get -qq install -y --no-install-recommends \
+                git vim parted quilt coreutils qemu-user-static debootstrap zerofree zip dosfstools e2fsprogs \
+                libarchive-tools libcap2-bin rsync grep udev xz-utils curl xxd file kmod bc \
+                binfmt-support ca-certificates fdisk gpg pigz arch-test >/dev/null
+              git config --global --add safe.directory /pi-gen
+              cd /pi-gen && ./build.sh -c /pi-gen/config
+            ' 2>&1 | tee "$RUNNER_TEMP/pi-gen.log" | grep --line-buffered -E "\] (Begin|End) |\[encore\]|rror|WARNING" || true
+          # annotations: stage timings, what the ENCORE. stage did, and on failure the end of the log
+          oneline() { cut -c1-300 | sed 's/%/%25/g' | awk 'BEGIN { ORS = "%0A" } { print }'; }
+          echo "::notice title=pi-gen stages::$(grep -E '\] (Begin|End) /pi-gen/stage[^/]*$' "$RUNNER_TEMP/pi-gen.log" | sed 's|/pi-gen/||' | oneline)"
+          echo "::notice title=ENCORE. stage::$(grep -o '\[encore\].*' "$RUNNER_TEMP/pi-gen.log" | head -n 40 | oneline)"
+          if ! ls "$BUILD_BASE"/deploy/*.img >/dev/null 2>&1; then
+            for part in 3 2 1; do
+              echo "::error title=pi-gen log (part $part from the end)::$(tail -n $((part * 40)) "$RUNNER_TEMP/pi-gen.log" | head -n 40 | oneline)"
+            done
+            echo "::error::pi-gen made no image"
+            exit 1
+          fi
+          ls -l "$BUILD_BASE"/deploy
+      - name: Check the image (files in place, ENCORE. Basement Studio's self-test inside it)
+        run: |
+          sudo apt-get install -y -qq --no-install-recommends xvfb >/dev/null
+          img=$(ls "$BUILD_BASE"/deploy/*.img | head -n 1)
+          set +e
+          sudo bash image/check-image.sh "$img" 2>&1 | tee "$RUNNER_TEMP/check.log"
+          code=${PIPESTATUS[0]}
+          echo "::notice title=image check::$(grep -c '^PASS' "$RUNNER_TEMP/check.log") checks passed, exit $code"
+          exit $code
+      - name: Screenshots of the real desktop
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        timeout-minutes: 10
+        run: |
+          sudo apt-get install -y -qq --no-install-recommends grim >/dev/null
+          img=$(ls "$BUILD_BASE"/deploy/*.img | head -n 1)
+          sudo bash image/screenshots.sh "$img" "$RUNNER_TEMP/shots" 2>&1 | tail -n 30
+          echo "::notice title=screenshots::$(ls "$RUNNER_TEMP/shots" | paste -sd ' ')"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: screenshots
+          path: ${{ runner.temp }}/shots
+          if-no-files-found: ignore
+      - name: Compress, checksum and the Raspberry Pi Imager list
+        env:
+          VERSION: ${{ needs.changes.outputs.version }}
+        run: |
+          set -euo pipefail
+          name="ENCORE-OS-$VERSION-arm64"
+          mkdir -p out
+          img=$(ls "$BUILD_BASE"/deploy/*.img | head -n 1)
+          extract_size=$(stat -c %s "$img")
+          extract_sha256=$(sha256sum "$img" | cut -d' ' -f1)
+          xz -T0 -6 -c "$img" > "out/$name.img.xz"
+          size=$(stat -c %s "out/$name.img.xz")
+          # GitHub release files can't be over 2 GiB
+          [ "$size" -lt 2147483648 ] || { echo "::error::$name.img.xz is $((size / 1048576)) MB; release files must be under 2048 MB"; exit 1; }
+          (cd out && sha256sum "$name.img.xz" > "$name.img.xz.sha256")
+          python3 imager/make-os-list.py \
+            --url "https://github.com/$GITHUB_REPOSITORY/releases/download/v$VERSION/$name.img.xz" \
+            --extract-size "$extract_size" --extract-sha256 "$extract_sha256" \
+            --download-size "$size" --download-sha256 "$(cut -d' ' -f1 "out/$name.img.xz.sha256")" \
+            --release-date "$(date -u +%Y-%m-%d)" --basement "$BASEMENT_VERSION" \
+            --out out/os_list_encore.json
+          cp imager/make-local-list.py out/
+          ls -l out
+          echo "::notice title=image::$name.img.xz: $((size / 1048576)) MB download, $((extract_size / 1048576)) MB on the card before it grows to fill it"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: encore-os
+          path: out
+          compression-level: 0
+          if-no-files-found: error
+
+  ci-passed:
+    name: CI passed
+    if: always()
+    needs: [changes, pins, package, image]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check the build and test jobs
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Results: $RESULTS"
+          for r in $RESULTS; do
+            if [[ "$r" == failure || "$r" == cancelled ]]; then echo "::error::A build or test job did not pass"; exit 1; fi
+          done
+
+  # A person publishes a Release in GitHub, which creates the v* tag. Nothing is rebuilt:
+  # the files come from the successful main build of the same commit.
+  release:
+    name: Release (files from the main build)
+    needs: changes
+    if: needs.changes.outputs.kind == 'release'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Find the main build of this commit
+        id: find
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          runs=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?branch=main&head_sha=$SHA&status=success&per_page=50" \
+                 --jq '.workflow_runs[] | select(.event == "push" or .event == "workflow_dispatch") | .id')
+          for id in $runs; do
+            if gh api "repos/$GITHUB_REPOSITORY/actions/runs/$id/artifacts?per_page=100" \
+                 --jq '.artifacts[] | select(.expired == false) | .name' | grep -qx encore-os; then
+              echo "run=$id" >> "$GITHUB_OUTPUT"; echo "Using run $id"; exit 0
+            fi
+          done
+          echo "::error::No successful main build with the image for $TAG ($SHA). Releases are not rebuilt. Wait for the main build of this commit to finish (or, if that push only changed docs and skipped the builds, run CI by hand on main: Actions, CI, Run workflow), then re-run this job."
+          exit 1
+      - name: Download its files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN: ${{ steps.find.outputs.run }}
+        run: gh run download "$RUN" --repo "$GITHUB_REPOSITORY" -n encore-os -D files
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: src
+          sparse-checkout: |
+            CHANGELOG.md
+            .github/release-notes.sh
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - name: Attach them to the release, with its title and notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          VERSION: ${{ needs.changes.outputs.version }}
+        run: |
+          set -euo pipefail
+          # Title and notes come from the repository (CHANGELOG.md), whatever was typed
+          # when the release was published.
+          title="ENCORE. OS $TAG"
+          (cd src && .github/release-notes.sh "$VERSION") > notes.md
+          cd files
+          ls -l
+          sha256sum -c ./*.img.xz.sha256
+          grep -q "releases/download/$TAG/ENCORE-OS-$VERSION-arm64.img.xz" os_list_encore.json \
+            || { echo "::error::os_list_encore.json doesn't point to this release's image"; exit 1; }
+          set -- ENCORE-OS-*.img.xz ENCORE-OS-*.img.xz.sha256 os_list_encore.json make-local-list.py
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$@" --clobber --repo "$GITHUB_REPOSITORY"
+            gh release edit "$TAG" --title "$title" --notes-file ../notes.md --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "$@" --verify-tag --title "$title" \
+              --notes-file ../notes.md --repo "$GITHUB_REPOSITORY"
+          fi

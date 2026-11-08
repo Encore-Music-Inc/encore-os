@@ -1,0 +1,4 @@
+# Filled in by the build (.github/workflows/ci.yml): ENCORE. Basement Studio's arm64 .deb
+# and ENCORE. VST's arm64 plugins, the releases pins.conf names
+*.deb
+plugins/

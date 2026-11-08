@@ -1,0 +1,16 @@
+# pi-gen settings for ENCORE. OS (64-bit Raspberry Pi OS Trixie with desktop).
+# The build (.github/workflows/ci.yml) adds STAGE_LIST, WORK_DIR, DEPLOY_DIR, IMG_DATE and GIT_HASH.
+IMG_NAME=encore-os
+PI_GEN_RELEASE="ENCORE. OS"
+RELEASE=trixie
+DEPLOY_COMPRESSION=none
+TARGET_HOSTNAME=encore
+LOCALE_DEFAULT=en_US.UTF-8
+KEYBOARD_KEYMAP=us
+KEYBOARD_LAYOUT="English (US)"
+TIMEZONE_DEFAULT=America/New_York
+# No password is baked in: the account stays locked until Raspberry Pi Imager's
+# OS customisation or the first-boot wizard sets the user name and password.
+FIRST_USER_NAME=pi
+DISABLE_FIRST_BOOT_USER_RENAME=0
+ENABLE_SSH=0

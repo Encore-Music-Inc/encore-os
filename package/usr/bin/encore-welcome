@@ -1,0 +1,3 @@
+#!/bin/sh
+# ENCORE. Welcome: the first-login setup (encore-welcome --again to see it again)
+exec python3 /usr/lib/encore-os/welcome.py "$@"

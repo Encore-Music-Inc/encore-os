@@ -1,0 +1,13 @@
+#!/bin/sh
+# ENCORE. OS: runs once when you log in. First time: the Welcome. After that: Home.
+# Not in the first-boot wizard's session (that one only sets up the account).
+[ "$(id -un)" = "rpi-first-boot-wizard" ] && exit 0
+[ -e /etc/xdg/autostart/piwiz.desktop ] && exit 0
+# the ENCORE. look on this account (once; see the script)
+/usr/lib/encore-os/apply-look || true
+[ -e "$HOME/.config/encore-os/no-home" ] && exit 0
+sleep 1
+if [ -e "$HOME/.config/encore-os/welcome-done" ]; then
+	exec encore-home
+fi
+exec encore-welcome

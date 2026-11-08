@@ -1,0 +1,12 @@
+#!/bin/sh
+# ENCORE. OS: makes the ENCORE. boot animation the one that shows, unless the defaults say
+# boot_animation = pix (Raspberry Pi's own).
+want=$(sed -n 's/^[[:space:]]*boot_animation[[:space:]]*=[[:space:]]*//p' /etc/encore-os/defaults.conf 2>/dev/null | tr -d '[:space:]')
+[ -n "$want" ] || want=encore
+[ -d "/usr/share/plymouth/themes/$want" ] || exit 0
+command -v plymouth-set-default-theme >/dev/null 2>&1 || exit 0
+# --refresh (from the package upgrade): rebuild the boot files even if the theme is already set,
+# so a changed animation actually shows
+[ "$1" != --refresh ] && [ "$(plymouth-set-default-theme)" = "$want" ] && exit 0
+# inside the image build there's no running system: the build makes the boot files at the end
+if [ -n "$ENCORE_OS_BUILDING" ]; then plymouth-set-default-theme "$want"; else plymouth-set-default-theme -R "$want" >/dev/null 2>&1; fi

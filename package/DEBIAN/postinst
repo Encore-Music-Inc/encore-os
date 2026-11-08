@@ -1,0 +1,69 @@
+#!/bin/sh
+# ENCORE. OS: switch the look on, set the login screen and boot animation, and give people
+# who already have an account the ENCORE. settings new accounts get from /etc/skel.
+set -e
+[ "$1" = configure ] || exit 0
+
+# Raspberry Pi's dark theme is PiXnoir on Bookworm and PiXonyx on Trixie (cursor: PiXflat / PiXtrix)
+if [ -d /usr/share/themes/PiXonyx ]; then dark=PiXonyx; cursor=PiXtrix; else dark=PiXnoir; cursor=PiXflat; fi
+sed -i -e "s|^gtk-theme=.*|gtk-theme='$dark'|" -e "s|^cursor-theme=.*|cursor-theme='$cursor'|" 	/usr/share/glib-2.0/schemas/99_encore-os.gschema.override
+sed -i "s|/usr/share/themes/[A-Za-z]*/gtk-3.0/gtk.css|/usr/share/themes/$dark/gtk-3.0/gtk.css|" /usr/share/themes/ENCORE/gtk-3.0/gtk.css
+sed -i "s|^CursorTheme=.*|CursorTheme=$cursor|" /usr/share/themes/ENCORE/index.theme
+
+command -v glib-compile-schemas >/dev/null && glib-compile-schemas /usr/share/glib-2.0/schemas || true
+command -v fc-cache >/dev/null && fc-cache -f /usr/share/fonts/truetype/encore >/dev/null 2>&1 || true
+if command -v gtk-update-icon-cache >/dev/null; then
+	for t in hicolor ENCORE; do gtk-update-icon-cache -q -f "/usr/share/icons/$t" 2>/dev/null || true; done
+fi
+
+# the boot animation
+if [ -n "$2" ]; then /usr/lib/encore-os/keep-boot-theme --refresh || true; else /usr/lib/encore-os/keep-boot-theme || true; fi
+
+# the login setting (password / automatic) applies at every boot
+systemctl enable encore-os-login.service >/dev/null 2>&1 || true
+
+# the login screen (Raspberry Pi's greeter, in ENCORE. colours)
+g=/etc/lightdm/pi-greeter.conf
+if [ -f "$g" ]; then
+	setkey() { if grep -q "^$1=" "$g"; then sed -i "s|^$1=.*|$1=$2|" "$g"; else sed -i "/^\[greeter\]/a $1=$2" "$g"; fi; }
+	setkey wallpaper /usr/share/rpd-wallpaper/encore-login.png
+	setkey wallpaper_mode crop
+	setkey desktop_bg '#0c0a09'
+	setkey gtk-theme-name ENCORE
+	setkey gtk-icon-theme-name ENCORE
+	setkey gtk-font-name 'DM Sans 12'
+	setkey default-user-image /usr/share/encore-os/login-logo.png
+fi
+
+# apps that still run on X (through Xwayland) get the same look
+x=/etc/xsettingsd/xsettingsd.conf
+if [ -f "$x" ]; then
+	sed -i -e "s|^Net/ThemeName .*|Net/ThemeName \"$dark\"|" -e 's|^Net/IconThemeName .*|Net/IconThemeName "ENCORE"|' 	       -e "s|^Gtk/CursorThemeName .*|Gtk/CursorThemeName \"$cursor\"|" -e 's|^Gtk/FontName .*|Gtk/FontName "DM Sans 11"|' "$x"
+	if grep -q '^Gtk/ColorScheme' "$x"; then
+		sed -i 's|^Gtk/ColorScheme .*|Gtk/ColorScheme "selected_bg_color:#ff3b00\nselected_fg_color:#ffffff\nbar_bg_color:#0c0a09\nbar_fg_color:#f2efe8\n"|' "$x"
+	fi
+fi
+
+# the desktop: ENCORE. wallpaper, no clutter
+for c in /etc/xdg/pcmanfm/*/desktop-items-*.conf; do
+	[ -f "$c" ] || continue
+	sed -i -e 's|^wallpaper=.*|wallpaper=/usr/share/rpd-wallpaper/encore-dark.png|' -e 's|^wallpaper_mode=.*|wallpaper_mode=crop|' \
+	       -e 's|^desktop_bg=.*|desktop_bg=#0c0a09|' -e 's|^desktop_fg=.*|desktop_fg=#f2efe8|' -e 's|^desktop_font=.*|desktop_font=DM Sans 12|' "$c"
+	if grep -q '^show_trash=' "$c"; then sed -i 's|^show_trash=.*|show_trash=0|' "$c"; else sed -i '/^\[\*\]/a show_trash=0' "$c"; fi
+done
+
+# people who already have an account (on a fresh image, the first user) get what new accounts get
+if [ -z "$2" ]; then
+	for home in /home/*; do
+		[ -d "$home" ] || continue
+		owner=$(stat -c %u:%g "$home")
+		(cd /etc/skel && find .local/share/themes .config/wf-panel-pi.ini .config/wf-panel-pi -type f 2>/dev/null) | while read -r f; do
+			# keep the person's own file; an empty one (Trixie makes an empty panel file) counts as none
+			[ -s "$home/$f" ] && continue
+			install -D -m 644 "/etc/skel/$f" "$home/$f"
+			d=$(dirname "$f"); while [ "$d" != . ]; do chown "$owner" "$home/$d"; d=$(dirname "$d"); done
+			chown "$owner" "$home/$f"
+		done
+	done
+fi
+exit 0

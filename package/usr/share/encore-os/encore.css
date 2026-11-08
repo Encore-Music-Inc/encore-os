@@ -1,0 +1,70 @@
+/* ENCORE. Home and ENCORE. Welcome (GTK 3). Colours from encore-tokens.css. */
+@define-color e_bg #0c0a09;
+@define-color e_subtle #110e0d;
+@define-color e_surface #171412;
+@define-color e_hover #221e1b;
+@define-color e_strong #2c2723;
+@define-color e_paper #f2efe8;
+@define-color e_soft #bdb4a9;
+@define-color e_dim #91887d;
+@define-color e_orange #ff3b00;
+@define-color e_orange_hover #ff6c40;
+@define-color e_line rgba(242, 239, 232, 0.10);
+@define-color e_line_strong rgba(242, 239, 232, 0.18);
+
+.encore, .encore * { font-family: "DM Sans", sans-serif; }
+window.encore { background-color: @e_bg; color: @e_paper; }
+.encore label { color: @e_paper; }
+.encore .soft { color: @e_soft; }
+.encore .dim { color: @e_dim; }
+.encore .mono { font-family: "Space Mono", monospace; letter-spacing: 3px; font-size: 11px; color: @e_dim; }
+
+.encore .wordmark { font-weight: 800; font-size: 22px; letter-spacing: 0.5px; }
+.encore .wordmark-big { font-weight: 800; font-size: 54px; }
+.encore .clock { font-weight: 800; font-size: 64px; }
+.encore .date { font-size: 16px; color: @e_soft; }
+.encore .greeting { font-weight: 800; font-size: 34px; }
+.encore .row-title { font-family: "Space Mono", monospace; letter-spacing: 3px; font-size: 11px; color: @e_dim; margin: 26px 0 10px 4px; }
+.encore .headline { font-weight: 800; font-size: 46px; }
+.encore .lead { font-size: 18px; color: @e_soft; }
+.encore .orange { color: @e_orange; }
+
+/* buttons */
+.encore button { background-image: none; background-color: @e_surface; color: @e_paper; border: 1px solid @e_line_strong; border-radius: 999px; padding: 8px 18px; box-shadow: none; text-shadow: none; font-weight: 700; }
+.encore button:hover { background-color: @e_hover; }
+.encore button:active { background-color: @e_strong; }
+.encore button label { color: @e_paper; }
+.encore button.primary { background-color: @e_orange; border-color: @e_orange; }
+.encore button.primary:hover { background-color: @e_orange_hover; border-color: @e_orange_hover; }
+.encore button.primary label { color: #ffffff; }
+.encore button.flat, .encore button.ghost { background-color: transparent; border-color: transparent; }
+.encore button.ghost:hover { background-color: @e_surface; }
+.encore button.big { padding: 12px 28px; font-size: 16px; }
+
+/* Home tiles */
+.encore .tile { background-image: none; background-color: @e_surface; border: 1px solid @e_line; border-radius: 18px; padding: 18px 16px 14px; }
+.encore .tile:hover { background-color: @e_hover; border-color: @e_line_strong; }
+.encore .tile:focus { border-color: @e_orange; }
+.encore .tile:active { background-color: @e_strong; }
+.encore .tile .tile-label { font-weight: 700; font-size: 15px; }
+.encore .tile .tile-sub { font-size: 12px; color: @e_dim; }
+
+/* search */
+.encore entry { background-image: none; background-color: @e_surface; color: @e_paper; border: 1px solid @e_line_strong; border-radius: 999px; padding: 8px 16px; box-shadow: none; caret-color: @e_orange; font-size: 15px; }
+.encore entry:focus { border-color: @e_orange; }
+.encore entry image { color: @e_dim; }
+
+/* Welcome */
+.encore .card { background-color: @e_surface; border: 1px solid @e_line; border-radius: 18px; padding: 16px 18px; }
+.encore radiobutton { color: @e_paper; padding: 6px 2px; }
+.encore radiobutton label { color: @e_paper; font-size: 15px; }
+.encore radio { background-image: none; background-color: @e_bg; border: 2px solid @e_line_strong; min-width: 16px; min-height: 16px; }
+.encore radio:checked { background-color: @e_orange; border-color: @e_orange; -gtk-icon-source: none; }
+.encore .dots label { color: @e_strong; font-size: 22px; }
+.encore .dots label.on { color: @e_orange; }
+
+.encore popover, .encore popover.background { background-color: @e_surface; border: 1px solid @e_line_strong; border-radius: 14px; }
+.encore popover button { border-radius: 10px; }
+.encore scrolledwindow, .encore viewport { background-color: transparent; }
+.encore scrollbar { background-color: transparent; border: 0; }
+.encore scrollbar slider { background-color: @e_strong; border-radius: 99px; min-width: 6px; }

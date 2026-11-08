@@ -1,0 +1,8 @@
+#!/bin/sh
+# ENCORE. in its own window: encoremusic.studio, the whole ENCORE. app (your account,
+# your music, your fans), opened by Chromium as an app (no address bar). Needs the internet.
+URL="https://encoremusic.studio"
+for b in chromium chromium-browser; do
+	if command -v "$b" >/dev/null 2>&1; then exec "$b" --app="$URL" --class=encore-music; fi
+done
+exec xdg-open "$URL"
