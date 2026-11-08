@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Welcome to ENCORE. OS
+GenericName=Welcome
+Comment=Set up your audio gear and see what's where
+Exec=encore-welcome --again
+Icon=encore-os
+Categories=Settings;
+Keywords=welcome;setup;tour;audio;interface;
+StartupNotify=true

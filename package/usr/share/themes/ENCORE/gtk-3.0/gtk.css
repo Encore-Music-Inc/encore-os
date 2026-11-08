@@ -1,0 +1,15 @@
+/* ENCORE. (login screen): PiXnoir with the ENCORE. colours */
+@import url("/usr/share/themes/PiXnoir/gtk-3.0/gtk.css");
+@define-color theme_selected_bg_color #ff3b00;
+@define-color theme_selected_fg_color #ffffff;
+@define-color bar_bg_color #0c0a09;
+@define-color bar_fg_color #f2efe8;
+@define-color theme_bg_color #171412;
+@define-color theme_base_color #110e0d;
+@define-color theme_fg_color #f2efe8;
+@define-color theme_text_color #f2efe8;
+window, .background { background-color: #0c0a09; }
+* { font-family: "DM Sans", sans-serif; }
+entry { border-radius: 999px; padding: 6px 14px; }
+entry:focus { border-color: #ff3b00; }
+button { border-radius: 999px; }

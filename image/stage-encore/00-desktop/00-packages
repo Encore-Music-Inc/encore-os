@@ -1,0 +1,5 @@
+# The Raspberry Pi desktop itself (rpd-wayland-core: labwc, the panel, the menus) comes
+# from pi-gen's stage3. Added here: the first-boot wizard, for anyone who doesn't set the
+# user name and password in Raspberry Pi Imager. Stage4's applications (Thonny, Geany,
+# Firefox and the rest) are left out to keep the image small.
+piwiz

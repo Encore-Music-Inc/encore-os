@@ -1,0 +1,15 @@
+# ENCORE. OS window title bars
+window.active.title.bg.color: #171412
+window.active.label.text.color: #f2efe8
+window.active.button.unpressed.image.color: #f2efe8
+window.inactive.title.bg.color: #0c0a09
+window.inactive.label.text.color: #91887d
+window.inactive.button.unpressed.image.color: #91887d
+window.active.border.color: #2c2723
+window.inactive.border.color: #171412
+menu.items.bg.color: #171412
+menu.items.text.color: #f2efe8
+menu.items.active.bg.color: #ff3b00
+menu.items.active.text.color: #ffffff
+osd.bg.color: #171412
+osd.label.text.color: #f2efe8

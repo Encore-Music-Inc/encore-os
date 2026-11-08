@@ -1,0 +1,12 @@
+#!/bin/sh
+# ENCORE. OS: runs at boot, before the login screen. With "login = password" in the
+# defaults, nobody is logged in automatically, so the ENCORE. login screen shows. (Raspberry
+# Pi's first-boot wizard turns automatic login back on when it finishes; this turns it off
+# again. The wizard's own session is left alone, it needs automatic login to run.)
+conf=/etc/lightdm/lightdm.conf
+[ -f "$conf" ] || exit 0
+mode=$(sed -n 's/^[[:space:]]*login[[:space:]]*=[[:space:]]*//p' /etc/encore-os/defaults.conf 2>/dev/null | tr -d '[:space:]')
+[ "$mode" = password ] || exit 0
+grep -q '^autologin-user=rpi-first-boot-wizard' "$conf" && exit 0
+grep -q '^autologin-user=' "$conf" && sed -i 's/^autologin-user=/#autologin-user=/' "$conf"
+exit 0

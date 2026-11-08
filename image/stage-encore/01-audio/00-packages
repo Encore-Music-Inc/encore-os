@@ -1,0 +1,10 @@
+# Audio for music: PipeWire (with its JACK and ALSA bridges), real-time
+# priority through rtkit, and a simple mixer to pick the audio interface
+pipewire
+pipewire-pulse
+pipewire-alsa
+pipewire-jack
+wireplumber
+rtkit
+pavucontrol
+alsa-utils

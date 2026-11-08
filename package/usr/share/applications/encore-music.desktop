@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=ENCORE.
+GenericName=ENCORE.
+Comment=Your ENCORE. account, your music and your fans, in its own window (needs the internet)
+Exec=encore-music
+Icon=encore-os
+Categories=AudioVideo;Audio;Music;Network;
+Keywords=encore;music;release;sell;fans;catalog;account;
+StartupNotify=true
+StartupWMClass=encore-music

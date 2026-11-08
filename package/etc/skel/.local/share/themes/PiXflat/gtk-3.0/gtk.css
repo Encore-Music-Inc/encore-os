@@ -1,0 +1,5 @@
+@import url("/usr/share/themes/PiXflat/gtk-3.0/gtk.css");
+@define-color theme_selected_bg_color #ff3b00;
+@define-color theme_selected_fg_color #ffffff;
+@define-color bar_bg_color #0c0a09;
+@define-color bar_fg_color #f2efe8;

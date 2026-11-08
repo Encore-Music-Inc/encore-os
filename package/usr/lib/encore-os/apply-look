@@ -1,0 +1,40 @@
+#!/bin/sh
+# ENCORE. OS: switches the ENCORE. look on for the person logging in, once.
+#
+# The system-wide default (99_encore-os.gschema.override) only reaches accounts that never chose
+# a theme. Accounts made by Raspberry Pi Imager or the first-boot wizard already have their own
+# choice saved (Raspberry Pi's light theme), and a saved choice beats the default. So the first
+# time someone logs in, this sets the ENCORE. look on their account. After that, whatever they
+# pick in Appearance Settings stays theirs.
+#
+# Works on Raspberry Pi OS Bookworm (dark theme PiXnoir) and Trixie (dark theme PiXonyx).
+stamp="$HOME/.config/encore-os/look-applied"
+[ -e "$stamp" ] && exit 0
+command -v gsettings >/dev/null || exit 0
+
+if [ -d /usr/share/themes/PiXonyx ]; then dark=PiXonyx; cursor=PiXtrix
+else dark=PiXnoir; cursor=PiXflat; fi
+
+s=org.gnome.desktop.interface
+gsettings set $s gtk-theme "$dark"
+gsettings set $s icon-theme ENCORE
+gsettings set $s cursor-theme "$cursor"
+gsettings set $s font-name 'DM Sans 11'
+gsettings set $s monospace-font-name 'Space Mono 10'
+gsettings set $s color-scheme prefer-dark 2>/dev/null
+
+# the ENCORE. colours on Raspberry Pi's dark theme, and the panel, if this account doesn't have
+# its own yet (an empty file counts as not having one)
+for f in ".local/share/themes/$dark/gtk-3.0/gtk.css" .config/wf-panel-pi/wf-panel-pi.ini .config/wf-panel-pi.ini; do
+	[ -f "/etc/skel/$f" ] || continue
+	[ -s "$HOME/$f" ] && continue
+	mkdir -p "$(dirname "$HOME/$f")"
+	cp "/etc/skel/$f" "$HOME/$f"
+done
+
+mkdir -p "$(dirname "$stamp")"
+date > "$stamp"
+# the panel reads its settings when it starts; restart it only where something brings it back
+# (Trixie's labwc runs it under lwrespawn)
+if pgrep -f "lwrespawn /usr/bin/wf-panel-pi" >/dev/null 2>&1; then pkill -x wf-panel-pi >/dev/null 2>&1 || true; fi
+exit 0
