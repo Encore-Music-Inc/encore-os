@@ -22,7 +22,7 @@ a = p.parse_args()
 
 desc = ("A music studio that boots up ready to play: ENCORE. Basement Studio, the ENCORE. "
         "plugins, ENCORE. in its own window, low-latency audio, all in the dark ENCORE. look. "
-        "For Pi 5, 500, 4 and 400; a Pi 3 works, slowly.")
+        "For Raspberry Pi 4, 400, 5, 500 and 500+ (2 GB or more).")
 entry = {
     "name": "ENCORE. OS",
     "description": desc,
@@ -36,7 +36,7 @@ entry = {
     "release_date": a.release_date,
     "init_format": "systemd",
     "architecture": "arm64",
-    "devices": ["pi5-64bit", "pi4-64bit", "pi3-64bit"],
+    "devices": ["pi5-64bit", "pi4-64bit"],
 }
 with open(a.out, "w", encoding="utf-8", newline="\n") as f:
     json.dump({"os_list": [entry]}, f, indent=2)

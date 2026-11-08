@@ -33,13 +33,13 @@ Contact: support@encoremusic.studio
 
 ## Which Pi
 
-| Pi | How it runs |
+| Pi | |
 |---|---|
-| Pi 5, Pi 500 / 500+ | Best. Several tracks with plugins. |
-| Pi 4, Pi 400 | Good, especially with 4 GB or more. |
-| Pi 3B / 3B+ (1 GB) | Works, slowly. A few tracks; use a 512 buffer. |
-| Pi 1, Pi 2, Pi Zero, Zero W | Not supported (32-bit only, too slow). |
-| Pi Zero 2 W | Not supported: 512 MB is too little. |
+| Pi 4, Pi 400, Pi 5, Pi 500, Pi 500+ (2 GB or more) | Supported |
+| Pi 4 or Pi 5 with 1 GB | Not supported: too little memory |
+| Pi 3 (every model) | Not supported: too little memory (1 GB or less) |
+| Pi Zero 2 W | Not supported: too little memory (512 MB) |
+| Pi 1, Pi 2, Pi Zero, Zero W | Not supported: 32-bit only |
 
 Use a 16 GB or bigger SD card (32 GB is comfortable). To record you need a USB
 audio interface or USB microphone: no Pi has a microphone input.
@@ -75,7 +75,7 @@ makes.
 - Choose your audio interface by right-clicking the speaker icon at the top of
   the screen.
 - Clicks or dropouts: use the official power supply, plug the interface
-  straight into the Pi (not a hub), and on a Pi 3 use a 512 buffer.
+  straight into the Pi (not a hub).
 - Don't want ENCORE. Home at login? `touch ~/.config/encore-os/no-home`
   (delete that file to undo). See the Welcome again: `encore-welcome --again`.
 - Prefer the normal CPU speed (cooler, quieter)?
