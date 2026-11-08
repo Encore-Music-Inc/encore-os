@@ -51,7 +51,7 @@ from ENCORE.'s other and older repositories do not apply here; this file does.
 | `.github/fetch-pin.sh` | gets one thing `pins.conf` names and checks it before use |
 | `CHANGELOG.md` | every release's notes, newest first; the release job copies the version's section onto the GitHub release |
 | `.github/release-notes.sh` | prints a version's notes from `CHANGELOG.md`, and fails if they're missing (CI runs it on every build) |
-| `.github/workflows/ci.yml` | pull requests, main and manual runs: pins check, the package, the image (pi-gen on arm64, `check-image.sh` with Basement Studio's self-test inside the image, screenshots, Imager list) as artifacts; `v*` tags: attach main's image to the Release, no rebuild; "CI passed" is the one check to require |
+| `.github/workflows/ci.yml` | pull requests, main and manual runs: pins check, the package, the image (pi-gen on arm64, `check-image.sh` with Basement Studio's self-test inside the image, screenshots, Imager list) as artifacts (pull requests skip the builds when only docs change, or only the version line in `defaults.conf` and `CHANGELOG.md`); `v*` tags: attach main's image to the Release, no rebuild; "CI passed" is the one check to require |
 
 ## Pins
 
