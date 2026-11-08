@@ -16,6 +16,10 @@ import sys
 sys.path.insert(0, "/usr/lib/encore-os")
 from encore_os import SHARE, STATE, Gdk, GLib, Gtk, apply_weights, read_defaults, run, setting, wordmark  # noqa: E402
 
+# The window's app id (Wayland) and class (X): the name of its .desktop file, so the panel
+# shows its icon and name.
+GLib.set_prgname("encore-welcome")
+
 try:
     import gi
     gi.require_version("Gst", "1.0")

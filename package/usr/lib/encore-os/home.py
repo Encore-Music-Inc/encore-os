@@ -11,6 +11,10 @@ import time
 sys.path.insert(0, "/usr/lib/encore-os")
 from encore_os import Gdk, Gio, GLib, Gtk, apply_weights, first_name, home_rows, launch, load_css, read_defaults, run, wordmark, setting  # noqa: E402
 
+# The window's app id (Wayland) and class (X): the name of its .desktop file, so the panel
+# shows its icon and name.
+GLib.set_prgname("encore-home")
+
 ICON = 56
 
 

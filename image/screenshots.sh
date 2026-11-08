@@ -62,12 +62,12 @@ session() {   # start the desktop, wait for it, leave it running
 		PATH=/usr/local/bin:/usr/bin:/bin XDG_SESSION_TYPE=wayland XDG_CURRENT_DESKTOP=wlroots LANG=en_US.UTF-8 \
 		WLR_BACKENDS=headless WLR_RENDERER=pixman WLR_LIBINPUT_NO_DEVICES=1 WLR_HEADLESS_OUTPUTS=1 \
 		setpriv --reuid=1000 --regid=1000 --init-groups \
-		dbus-run-session -- sh -c 'if command -v labwc-pi >/dev/null; then exec labwc-pi; else exec labwc -m; fi' \
+		dbus-run-session -- sh -c 'echo "$DBUS_SESSION_BUS_ADDRESS" > /run/user/1000/encore-bus; if command -v labwc-pi >/dev/null; then exec labwc-pi; else exec labwc -m; fi' \
 		> "$out/session-$1.log" 2>&1 &
 	for i in $(seq 1 30); do [ -S "$m/run/user/1000/wayland-0" ] && break; sleep 1; done
 	sleep "${2:-14}"
 }
-stop() { pkill -f "labwc" 2>/dev/null; sleep 2; pkill -9 -f "labwc" 2>/dev/null; rm -f "$m"/run/user/1000/wayland-*; sleep 1; }
+stop() { pkill -f "labwc" 2>/dev/null; sleep 2; pkill -9 -f "labwc" 2>/dev/null; rm -f "$m"/run/user/1000/wayland-* "$m"/run/user/1000/encore-bus; sleep 1; }
 shot() {
 	if WAYLAND_DISPLAY="$m/run/user/1000/wayland-0" timeout 20 grim "$out/$1.png" 2>>"$out/grim.log"; then
 		echo "shot $1.png"
@@ -91,8 +91,10 @@ session home 14; shot 3-home; stop
 # 4-5: the desktop itself (Home left closed), and the main menu
 echo 1 > "$m$home/.config/encore-os/no-home"
 session desktop 12; shot 4-desktop
+# the panel listens on the desktop session's own D-Bus, whose address the session wrote down
 chroot "$m" setpriv --reuid=1000 --regid=1000 --init-groups env -i HOME="$home" XDG_RUNTIME_DIR=/run/user/1000 WAYLAND_DISPLAY=wayland-0 \
-	PATH=/usr/bin:/bin sh -c 'command -v wfpanelctl >/dev/null && wfpanelctl smenu menu' 2>/dev/null
+	DBUS_SESSION_BUS_ADDRESS="$(cat "$m/run/user/1000/encore-bus" 2>/dev/null)" PATH=/usr/bin:/bin wfpanelctl smenu menu > "$out/menu.log" 2>&1 \
+	|| echo "::warning title=screenshot::the menu didn't open (menu.log)"
 sleep 3; shot 5-menu
 stop
 ls -l "$out"

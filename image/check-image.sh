@@ -76,6 +76,25 @@ chroot "$m" python3 -c "import sys; sys.path.insert(0, '/usr/lib/encore-os'); im
 browser=$(ls "$m"/usr/bin/chromium "$m"/usr/bin/chromium-browser 2>/dev/null | head -n 1)
 [ -n "$browser" ] && ok "browser ${browser#$m}" || bad "no Chromium"
 
+# Home: every tile's app is installed and its icon can be drawn. GTK draws an SVG-only icon
+# (Hydrogen's) only with the SVG loader (librsvg2-common); without it the tile shows a blank page.
+svg_loader=$(grep -l "image/svg" "$m"/usr/lib/*/gdk-pixbuf-2.0/2.10.0/loaders.cache 2>/dev/null | head -n 1)
+[ -n "$svg_loader" ] && ok "SVG icons can be drawn" || bad "no SVG loader in gdk-pixbuf's loaders.cache (librsvg2-common)"
+while IFS= read -r line; do
+	desk=""
+	for d in $(echo "${line%%|*}" | tr ',' ' '); do [ -f "$m/usr/share/applications/$d" ] && { desk=$d; break; }; done
+	[ -n "$desk" ] || { bad "Home tile $line: none of its apps is installed"; continue; }
+	icon=$(sed -n 's/^Icon=//p' "$m/usr/share/applications/$desk" | head -n 1)
+	case "$icon" in
+		/*) files=$(ls "$m$icon" 2>/dev/null) ;;
+		*) files=$(find "$m"/usr/share/icons/ENCORE "$m"/usr/share/icons/PiXtrix "$m"/usr/share/icons/PiXflat "$m"/usr/share/icons/hicolor "$m"/usr/share/pixmaps \
+			-name "$icon.png" -o -name "$icon.svg" -o -name "$icon.xpm" 2>/dev/null) ;;
+	esac
+	if echo "$files" | grep -qE '\.(png|xpm)$'; then ok "Home tile $desk: icon $icon"
+	elif echo "$files" | grep -q '\.svg$' && [ -n "$svg_loader" ]; then ok "Home tile $desk: icon $icon (SVG)"
+	else bad "Home tile $desk: icon $icon can't be drawn (${files:-no file})"; fi
+done < <(awk '/^\[/{on = ($0 == "[home]"); next} on && $0 !~ /^[[:space:]]*(#|$)/ && $0 !~ /^##/' "$m/etc/encore-os/defaults.conf")
+
 # Audio
 f /etc/security/limits.d/audio.conf
 grep -q "rtprio" "$m/etc/security/limits.d/audio.conf" 2>/dev/null && ok "rtprio limit" || bad "no rtprio limit"
