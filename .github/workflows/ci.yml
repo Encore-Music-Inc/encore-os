@@ -13,7 +13,10 @@
 #                         commit are attached to the Release, with its title and notes
 #
 # A pull request or push that only changes *.md, LICENSE or .github/CODEOWNERS skips the
-# builds. Every action is pinned to a commit (the version is in the comment next to it);
+# builds. So does a pull request that only changes the version line in defaults.conf and
+# CHANGELOG.md (a "Release vX.Y.Z" pull request): its release notes are still checked, and
+# the push to main after merging builds and checks the image, which is the build a release
+# is made from. Every action is pinned to a commit (the version is in the comment next to it);
 # Dependabot proposes updates (.github/dependabot.yml). "CI passed" is the one check to
 # require.
 
@@ -72,6 +75,19 @@ jobs:
           fi
           echo "Changed files:"; echo "$files"
           code=$(echo "$files" | grep -Ev '(\.md$|^LICENSE$|^\.github/CODEOWNERS$)' | grep -c . || true)
+          # A pull request that changes only the version line and CHANGELOG.md. defaults.conf
+          # holds much more (apps, Home, look, Welcome): any other line in it builds everything.
+          version_file=defaults.conf
+          if [[ "$EVENT" == pull_request && "$code" -gt 0 ]] \
+             && [[ "$(echo "$files" | grep -Ev '(\.md$|^LICENSE$|^\.github/CODEOWNERS$)')" == "$version_file" ]]; then
+            other=$(git diff -U0 "$PR_BASE" "$PR_HEAD" -- "$version_file" | grep -E '^[-+]' | grep -Ev '^(\+\+\+|---) ' \
+                    | grep -Ev '^[-+]version *= *[0-9]+\.[0-9]+\.[0-9]+ *$' | grep -c . || true)
+            if [[ "$other" -eq 0 ]]; then
+              echo "code=false" >> "$GITHUB_OUTPUT"
+              echo "Version only: the release notes are checked; the package and image are built on main after merging"
+              exit 0
+            fi
+          fi
           if [[ "$code" -gt 0 ]]; then echo "code=true" >> "$GITHUB_OUTPUT"; else echo "code=false" >> "$GITHUB_OUTPUT"; echo "Docs only: the builds are skipped"; fi
       - id: version
         name: Version (from defaults.conf; a tag must match it)

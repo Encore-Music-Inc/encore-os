@@ -160,7 +160,9 @@ an arm64 machine.
 | `v*` tag | no build: the files from the successful `main` build of the tag's commit are attached to the Release, with its title and notes |
 
 - A pull request or push that only changes `*.md`, `LICENSE` or
-  `.github/CODEOWNERS` skips the builds (skipped counts as passing).
+  `.github/CODEOWNERS` skips the builds (skipped counts as passing). So does a
+  pull request that only changes the version line in `defaults.conf` and
+  `CHANGELOG.md`; the push to `main` after merging builds and checks the image.
 - "CI passed" is the one check to require.
 - Every action is pinned to a commit, with its version in a comment.
   Dependabot proposes updates (`.github/dependabot.yml`).
