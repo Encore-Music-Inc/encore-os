@@ -33,6 +33,11 @@ from ENCORE.'s other and older repositories do not apply here; this file does.
 - What it's built from is named once, in `pins.conf`: the ENCORE. VST and
   ENCORE. Basement Studio release files by SHA-256, and pi-gen by Raspberry Pi
   OS's tag and its commit. Release files only, never a build artifact.
+- The Welcome's test chime (`art/make-sounds.py`) and the welcome video's
+  pad (`art/make-video.py`) are made here, in Python, as part of the art:
+  they are artwork drawn once at build time, used by nothing else, and not
+  ENCORE. Audio Processing's to keep. Any sound a person makes or changes
+  on the device goes through Basement Studio and the plugins.
 - Upkeep (security updates, rebuilding on newer Raspberry Pi OS releases)
   belongs to Jimmy.
 
