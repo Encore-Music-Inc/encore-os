@@ -4,6 +4,56 @@ Each release's notes, newest first. When a release is published, the release
 job puts its section on the GitHub release (see "Release notes" in
 `CLAUDE.md`).
 
+## v1.1.0
+
+ENCORE. OS with ENCORE. Basement Studio v0.8.0 and the ENCORE. plugins
+v0.8.0, which now run entirely on ENCORE. Audio Processing, the same audio
+processing as the rest of ENCORE.
+
+### What's new
+- **ENCORE.'s effects and instruments in ENCORE. Basement Studio:**
+  Compressor, Limiter, Delay, Chorus, Phaser, Pitch Shifter and Filter, and
+  ENCORE. Synth and ENCORE. Sampler.
+- **Masters land on their loudness target**, and 16 and 24-bit exports are
+  dithered.
+- **Drum kits and the metronome's clicks** come from ENCORE.'s drum engine,
+  with the ENCORE. and Club kits added and a new Kick and hat click.
+- **Songs that change time signature:** moving and snapping by bars, the
+  piano roll's bar lines and new drum clips follow the song's bars.
+- **The plugins:** Vox's tone EQ glides without zipper noise, Master's
+  true-peak meter agrees with its limiter, three Master presets select the
+  style their name suggests, and the reverb and Vox's harmony voices sound
+  very slightly different.
+
+### Songs made with v1.0.0
+- Tracktion Engine's own effects and its 4OSC synth and sampler are no longer
+  in ENCORE. Basement Studio. A song that used them opens without them: put
+  ENCORE.'s in their place.
+- Drum tracks open silent: choose a kit again in the drum grid.
+
+The full lists are in ENCORE. Basement Studio's and ENCORE. VST's v0.7.0 and
+v0.8.0 release notes.
+
+### Downloads
+- `ENCORE-OS-1.1.0-arm64.img.xz`: the SD card image (16 GB card or bigger),
+  with `ENCORE-OS-1.1.0-arm64.img.xz.sha256`.
+- `os_list_encore.json`: the list for Raspberry Pi Imager. In Imager, App
+  Options, Content Repository, Edit, Use custom URL, and paste this file's
+  address; then pick your Pi, ENCORE. OS and your SD card, and set your user
+  name, password and Wi-Fi on the customisation screen.
+- `make-local-list.py`: for flashing a downloaded image with Imager's
+  customisation screen (see the README).
+
+To record you need a USB audio interface or USB microphone: no Pi has a
+microphone input.
+
+### Built on
+Raspberry Pi OS (64-bit, Trixie, Raspberry Pi's 2026-10-06 release), ENCORE.
+Basement Studio v0.8.0 and ENCORE. VST v0.8.0 (both with ENCORE. Audio
+Processing v3.0.0 and JUCE 9.0.5).
+
+Questions or problems: support@encoremusic.studio
+
 ## v1.0.0
 
 The first release of ENCORE. OS: a ready-to-flash music studio for Raspberry
