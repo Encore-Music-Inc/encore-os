@@ -4,6 +4,39 @@ Each release's notes, newest first. When a release is published, the release
 job puts its section on the GitHub release (see "Release notes" in
 `CLAUDE.md`).
 
+## v1.1.1
+
+ENCORE. OS with ENCORE. Basement Studio v0.9.0 and the ENCORE. plugins
+v0.8.1, on ENCORE. Audio Processing v4.0.0. Your songs open as before.
+
+### What's changed
+- **Drum kits:** in ENCORE. Basement Studio, the 808 kit is now called
+  **Deep**. It's the same kit with the same sounds, and a song saved with the
+  808 kit opens with Deep.
+- **ENCORE. Synth:** the triangle wave starts each note without a small
+  offset, so a triangle sound is slightly different at the start of a note.
+- **The plugins** sound as in v1.1.0.
+
+### Downloads
+- `ENCORE-OS-1.1.1-arm64.img.xz`: the SD card image (16 GB card or bigger),
+  with `ENCORE-OS-1.1.1-arm64.img.xz.sha256`.
+- `os_list_encore.json`: the list for Raspberry Pi Imager. In Imager, App
+  Options, Content Repository, Edit, Use custom URL, and paste this file's
+  address; then pick your Pi, ENCORE. OS and your SD card, and set your user
+  name, password and Wi-Fi on the customisation screen.
+- `make-local-list.py`: for flashing a downloaded image with Imager's
+  customisation screen (see the README).
+
+To record you need a USB audio interface or USB microphone: no Pi has a
+microphone input.
+
+### Built on
+Raspberry Pi OS (64-bit, Trixie, Raspberry Pi's 2026-10-06 release), ENCORE.
+Basement Studio v0.9.0 and ENCORE. VST v0.8.1 (both with ENCORE. Audio
+Processing v4.0.0 and JUCE 9.0.5).
+
+Questions or problems: support@encoremusic.studio
+
 ## v1.1.0
 
 ENCORE. OS with ENCORE. Basement Studio v0.8.0 and the ENCORE. plugins
