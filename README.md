@@ -126,8 +126,8 @@ SHA-256 is the one that release published, and that this table matches.
 <!-- pinned-releases:start -->
 | What | Repository | Release | Exactly |
 |---|---|---|---|
-| encore-vst | [Encore-Music-Inc/encore-vst](https://github.com/Encore-Music-Inc/encore-vst) | `v0.8.0` | `ENCORE-VST-0.8.0-linux-arm64.tar.gz`, SHA-256 `0b36f6cfda84` |
-| encore-basement-studio | [Encore-Music-Inc/encore-basement-studio](https://github.com/Encore-Music-Inc/encore-basement-studio) | `v0.8.0` | `encore-basement-studio_0.8.0_arm64.deb`, SHA-256 `d72e3627d3b4` |
+| encore-vst | [Encore-Music-Inc/encore-vst](https://github.com/Encore-Music-Inc/encore-vst) | `v0.8.1` | `ENCORE-VST-0.8.1-linux-arm64.tar.gz`, SHA-256 `f9f0bcb91126` |
+| encore-basement-studio | [Encore-Music-Inc/encore-basement-studio](https://github.com/Encore-Music-Inc/encore-basement-studio) | `v0.9.0` | `encore-basement-studio_0.9.0_arm64.deb`, SHA-256 `9496ec0cffff` |
 | pi-gen | [RPi-Distro/pi-gen](https://github.com/RPi-Distro/pi-gen) | `2026-10-06-raspios-trixie-arm64` | the tag, at commit `b2cd98a` |
 <!-- pinned-releases:end -->
 
